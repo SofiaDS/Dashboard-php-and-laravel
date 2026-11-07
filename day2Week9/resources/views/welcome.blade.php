@@ -1,8 +1,9 @@
 @extends('v1.layout')
-@section('title','welcome')
+@section('title','Welcome')
 
 @section('content')
 <div class='container'>
+    <div class='title'>User Management Dashboard</div>
             @if (Route::has('login'))
                 @auth
                 <a href="{{ url('/dashboard') }}" >Dashboard</a>
@@ -15,3 +16,4 @@
                 @endauth
             @endif
 </div>
+@endsection

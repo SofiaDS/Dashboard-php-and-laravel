@@ -68,10 +68,10 @@ td{
     padding:0.5rem;
     border-bottom: 1px solid black;
 }
-#odd:nth-child(odd){
+.row:nth-child(odd){
     background-color:rgba(128, 128, 128, 0.353)
 }
-#odd:nth-child(even){
+.row:nth-child(even){
     color: #0ba360;
 }
 .container{
@@ -159,4 +159,19 @@ input{
     top:0%;
     right:0%;
     width:30px
+}
+
+/* bottoni-icona (logout, delete) e messaggi di errore */
+.icon-btn{
+    border: none;
+    background: none;
+    cursor: pointer;
+}
+.inline-form{
+    display: inline;
+}
+.errors{
+    color: #b00020;
+    list-style: none;
+    padding: 0;
 }

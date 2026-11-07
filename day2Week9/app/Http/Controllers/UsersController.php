@@ -2,76 +2,83 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\User;
 use Illuminate\Http\Request;
-use App\Models\users;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Validation\Rule;
 
 class UsersController extends Controller
 {
     /**
-     * Display a listing of the resource.
-     *
-     * @return \Illuminate\Http\Response
+     * Elenco utenti paginato (7 per pagina).
      */
-    public function read() //read
+    public function read()
     {
-        $users = users::orderBy('id','ASC')->paginate(7);//->where() paginate fa già la paginazione
-        return view('v1.crud.read',['users'=>$users]);
+        $users = User::orderBy('id', 'ASC')->paginate(7);
+
+        return view('v1.crud.read', ['users' => $users]);
     }
 
     /**
-     * Show the form for creating a new resource.
-     *
-     * @return \Illuminate\Http\Response
+     * Crea un nuovo utente.
      */
     public function create(Request $request)
     {
-        $user = new users();
-        $user->name = $request->name;
-        $user->email =$request->email;
-        $user->password =$request->password;
+        $data = $request->validate([
+            'name' => ['required', 'string', 'max:255'],
+            'email' => ['required', 'string', 'email', 'max:255', 'unique:users'],
+            'password' => ['required', 'string', 'min:8'],
+        ]);
 
-        $user->save(); //salva la nuova pizza nel db
-        return redirect('dashboard');
+        User::create([
+            'name' => $data['name'],
+            'email' => $data['email'],
+            'password' => Hash::make($data['password']),
+        ]);
+
+        return redirect()->route('dashboard');
     }
+
     /**
-     * Show the form for editing the specified resource.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
+     * Mostra il form di modifica, già compilato.
      */
     public function edit($id)
     {
-        $users = users::find($id);
-        return view('v1.crud.update',['users'=>$users]);
+        $user = User::findOrFail($id);
+
+        return view('v1.crud.update', ['user' => $user]);
     }
+
     /**
-     * Update the specified resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
+     * Aggiorna un utente. La password cambia solo se ne viene inserita una nuova.
      */
     public function update(Request $request, $id)
     {
-        $user = users::find($id);
-        $user->name = $request->name;
-        $user->email =$request->email;
-        $user->password =$request->password;
-        $user->save(); //salva la pizza nel db
+        $user = User::findOrFail($id);
 
-        return redirect('dashboard');
+        $data = $request->validate([
+            'name' => ['required', 'string', 'max:255'],
+            'email' => ['required', 'string', 'email', 'max:255', Rule::unique('users')->ignore($user->id)],
+            'password' => ['nullable', 'string', 'min:8'],
+        ]);
+
+        $user->name = $data['name'];
+        $user->email = $data['email'];
+        if (! empty($data['password'])) {
+            $user->password = Hash::make($data['password']);
+        }
+        $user->save();
+
+        return redirect()->route('dashboard');
     }
 
     /**
-     * Remove the specified resource from storage.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
+     * Elimina un utente.
      */
-    public function destroy($id)//delete
+    public function destroy($id)
     {
-        // $user = users::find($id)->delete();
-        users::destroy($id);
-        return redirect('dashboard');
+        User::findOrFail($id)->delete();
+
+        return redirect()->route('dashboard');
     }
 }
